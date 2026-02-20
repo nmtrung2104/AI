@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Chi Tiêu</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .summary-card h3 {
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+
+        .summary-card .amount {
+            font-size: 2em;
+            font-weight: bold;
+        }
+
+        .form-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .form-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 2fr auto;
+            gap: 15px;
+            align-items: end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, select {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        button {
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1em;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .charts-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        .chart-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        .chart-container h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .transactions-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+        }
+
+        .transactions-section h2 {
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        thead {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+
+        tbody tr {
+            background: white;
+            border-bottom: 1px solid #e0e0e0;
+            transition: background 0.2s;
+        }
+
+        tbody tr:hover {
+            background: #f0f0f0;
+        }
+
+        .category-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: white;
+        }
+
+        .food { background: #ff6b6b; }
+        .study { background: #4ecdc4; }
+        .entertainment { background: #ffd93d; color: #333; }
+        .transportation { background: #6c5ce7; }
+        .others { background: #95a5a6; }
+
+        .delete-btn {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .delete-btn:hover {
+            background: #c0392b;
+        }
+
+        .clear-all-btn {
+            background: #e74c3c;
+            margin-top: 15px;
+        }
+
+        .clear-all-btn:hover {
+            background: #c0392b;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .charts-section {
+                grid-template-columns: 1fr;
+            }
+
+            .summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💰 Dashboard Chi Tiêu</h1>
+
+        <div class="summary">
+            <div class="summary-card">
+                <h3>Tổng Chi Tiêu</h3>
+                <div class="amount" id="totalExpense">0 nghìn VNĐ</div>
+            </div>
+            <div class="summary-card">
+                <h3>Số Giao Dịch</h3>
+                <div class="amount" id="totalTransactions">0</div>
+            </div>
+            <div class="summary-card">
+                <h3>Chi Nhiều Nhất</h3>
+                <div class="amount" id="topCategory">-</div>
+            </div>
+        </div>
+
+        <div class="form-section">
+            <h2>✍️ Thêm Chi Tiêu Mới</h2>
+            <form id="expenseForm">
+                <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr 1fr 2fr auto;">
+                    <div class="form-group">
+                        <label for="amount">Số Tiền (VNĐ)</label>
+                        <input type="number" id="amount" placeholder="50000" required min="1">
+                    </div>
+                    <div class="form-group">
+                        <label for="category">Danh Mục</label>
+                        <select id="category" required>
+                            <option value="food">🍔 Ăn uống</option>
+                            <option value="study">📚 Học tập</option>
+                            <option value="entertainment">🎮 Giải trí</option>
+                            <option value="transportation">🚗 Di chuyển</option>
+                            <option value="others">📦 Khoản khác</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Ngày / Tháng / Năm</label>
+                        <div style="display: flex; gap: 6px;">
+                            <input type="number" id="inputDay" placeholder="DD" min="1" max="31" required style="width: 60px; text-align: center;">
+                            <input type="number" id="inputMonth" placeholder="MM" min="1" max="12" required style="width: 60px; text-align: center;">
+                            <input type="number" id="inputYear" placeholder="YYYY" min="2000" max="2100" required style="width: 80px; text-align: center;">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="description">Mô Tả</label>
+                        <input type="text" id="description" placeholder="Mua cà phê..." required>
+                    </div>
+                    <button type="submit">Thêm</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="form-section">
+            <h2>🔍 Lọc Theo Thời Gian</h2>
+            <div class="form-grid" style="grid-template-columns: 1fr 1fr 1fr auto auto;">
+                <div class="form-group">
+                    <label for="filterDay">Ngày</label>
+                    <select id="filterDay">
+                        <option value="">Tất cả</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterMonth">Tháng</label>
+                    <select id="filterMonth">
+                        <option value="">Tất cả</option>
+                        <option value="0">Tháng 1</option>
+                        <option value="1">Tháng 2</option>
+                        <option value="2">Tháng 3</option>
+                        <option value="3">Tháng 4</option>
+                        <option value="4">Tháng 5</option>
+                        <option value="5">Tháng 6</option>
+                        <option value="6">Tháng 7</option>
+                        <option value="7">Tháng 8</option>
+                        <option value="8">Tháng 9</option>
+                        <option value="9">Tháng 10</option>
+                        <option value="10">Tháng 11</option>
+                        <option value="11">Tháng 12</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="filterYear">Năm</label>
+                    <select id="filterYear">
+                        <option value="">Tất cả</option>
+                    </select>
+                </div>
+                <button type="button" id="applyFilterBtn">Áp Dụng</button>
+                <button type="button" id="resetFilterBtn" style="background: #95a5a6;">Reset</button>
+            </div>
+            <div id="filterInfo" style="margin-top: 15px; color: #667eea; font-weight: bold; text-align: center;"></div>
+        </div>
+
+        <div class="charts-section">
+            <div class="chart-container">
+                <h3>📊 Biểu Đồ Tròn - Tỉ Lệ Chi Tiêu</h3>
+                <canvas id="pieChart"></canvas>
+            </div>
+            <div class="chart-container">
+                <h3>📈 Biểu Đồ Cột - Chi Tiêu Theo Danh Mục</h3>
+                <canvas id="barChart"></canvas>
+            </div>
+        </div>
+
+        <div class="transactions-section">
+            <h2>📋 Lịch Sử Giao Dịch</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Ngày</th>
+                        <th>Danh Mục</th>
+                        <th>Mô Tả</th>
+                        <th>Số Tiền</th>
+                        <th>Hành Động</th>
+                    </tr>
+                </thead>
+                <tbody id="transactionsTable">
+                    <tr>
+                        <td colspan="5" style="text-align: center; color: #999;">Chưa có giao dịch nào</td>
+                    </tr>
+                </tbody>
+            </table>
+            <button class="clear-all-btn" id="clearAllBtn">Xóa Tất Cả</button>
+        </div>
+    </div>
+
+    <script>
+        // Khởi tạo dữ liệu
+        let expenses = JSON.parse(localStorage.getItem('expenses')) || [];
+        
+        // Trạng thái bộ lọc
+        let currentFilter = {
+            day: '',
+            month: '',
+            year: ''
+        };
+        
+        // Nếu chưa có dữ liệu, thêm dữ liệu mẫu
+        if (expenses.length === 0) {
+            expenses = [
+                {
+                    amount: 45000,
+                    category: 'food',
+                    description: 'Ăn sáng bánh mì',
+                    date: new Date(2024, 1, 10, 8, 30).toISOString()
+                },
+                {
+                    amount: 150000,
+                    category: 'food',
+                    description: 'Ăn trưa với bạn',
+                    date: new Date(2024, 1, 10, 12, 0).toISOString()
+                },
+                {
+                    amount: 500000,
+                    category: 'study',
+                    description: 'Mua sách lập trình',
+                    date: new Date(2024, 1, 9, 14, 30).toISOString()
+                },
+                {
+                    amount: 200000,
+                    category: 'entertainment',
+                    description: 'Xem phim rạp',
+                    date: new Date(2024, 1, 9, 19, 0).toISOString()
+                },
+                {
+                    amount: 30000,
+                    category: 'transportation',
+                    description: 'Grab đi làm',
+                    date: new Date(2024, 1, 11, 7, 30).toISOString()
+                },
+                {
+                    amount: 50000,
+                    category: 'transportation',
+                    description: 'Grab về nhà',
+                    date: new Date(2024, 1, 11, 18, 0).toISOString()
+                },
+                {
+                    amount: 100000,
+                    category: 'others',
+                    description: 'Mua quà sinh nhật',
+                    date: new Date(2024, 1, 8, 16, 0).toISOString()
+                },
+                {
+                    amount: 250000,
+                    category: 'food',
+                    description: 'Đi ăn buffet',
+                    date: new Date(2024, 1, 12, 19, 30).toISOString()
+                },
+                {
+                    amount: 300000,
+                    category: 'study',
+                    description: 'Khóa học online',
+                    date: new Date(2024, 1, 7, 10, 0).toISOString()
+                },
+                {
+                    amount: 120000,
+                    category: 'entertainment',
+                    description: 'Mua game Steam',
+                    date: new Date(2024, 1, 13, 21, 0).toISOString()
+                }
+            ];
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+        }
+
+        const categoryNames = {
+            food: 'Ăn uống',
+            study: 'Học tập',
+            entertainment: 'Giải trí',
+            transportation: 'Di chuyển',
+            others: 'Khoản khác'
+        };
+
+        const categoryColors = {
+            food: '#ff6b6b',
+            study: '#4ecdc4',
+            entertainment: '#ffd93d',
+            transportation: '#6c5ce7',
+            others: '#95a5a6'
+        };
+
+        // Lấy danh sách chi tiêu đã lọc
+        function getFilteredExpenses() {
+            if (!currentFilter.day && !currentFilter.month && !currentFilter.year) {
+                return expenses;
+            }
+
+            return expenses.filter(expense => {
+                const expenseDate = new Date(expense.date);
+                
+                if (currentFilter.year && expenseDate.getFullYear() !== parseInt(currentFilter.year)) {
+                    return false;
+                }
+                
+                if (currentFilter.month !== '' && expenseDate.getMonth() !== parseInt(currentFilter.month)) {
+                    return false;
+                }
+                
+                if (currentFilter.day && expenseDate.getDate() !== parseInt(currentFilter.day)) {
+                    return false;
+                }
+                
+                return true;
+            });
+        }
+
+        // Cập nhật options của ngày và năm dựa trên dữ liệu
+        function updateFilterOptions() {
+            const years = [...new Set(expenses.map(exp => new Date(exp.date).getFullYear()))].sort((a, b) => b - a);
+            const yearSelect = document.getElementById('filterYear');
+            yearSelect.innerHTML = '<option value="">Tất cả</option>' + 
+                years.map(year => `<option value="${year}">${year}</option>`).join('');
+
+            // Cập nhật ngày (1-31)
+            const daySelect = document.getElementById('filterDay');
+            daySelect.innerHTML = '<option value="">Tất cả</option>' + 
+                Array.from({length: 31}, (_, i) => i + 1).map(day => 
+                    `<option value="${day}">${day}</option>`
+                ).join('');
+        }
+
+        // Hiển thị thông tin bộ lọc
+        function updateFilterInfo() {
+            const filterInfo = document.getElementById('filterInfo');
+            const filtered = getFilteredExpenses();
+            
+            if (!currentFilter.day && !currentFilter.month && !currentFilter.year) {
+                filterInfo.textContent = '';
+                return;
+            }
+
+            let filterText = '🔎 Đang xem: ';
+            if (currentFilter.day) filterText += `Ngày ${currentFilter.day}, `;
+            if (currentFilter.month !== '') filterText += `Tháng ${parseInt(currentFilter.month) + 1}, `;
+            if (currentFilter.year) filterText += `Năm ${currentFilter.year}`;
+            
+            filterText += ` - Tìm thấy ${filtered.length} giao dịch`;
+            filterInfo.textContent = filterText;
+        }
+
+        // Khởi tạo biểu đồ
+        let pieChart, barChart;
+
+        function initCharts() {
+            const pieCtx = document.getElementById('pieChart').getContext('2d');
+            const barCtx = document.getElementById('barChart').getContext('2d');
+
+            pieChart = new Chart(pieCtx, {
+                type: 'pie',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        data: [],
+                        backgroundColor: []
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.label || '';
+                                    let value = context.parsed || 0;
+                                    let total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    let percentage = ((value / total) * 100).toFixed(1);
+                                    return label + ': ' + (value / 1000).toLocaleString('vi-VN') + ' nghìn VNĐ (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            barChart = new Chart(barCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: 'Chi tiêu (triệu VNĐ)',
+                        data: [],
+                        backgroundColor: []
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return (context.parsed.y / 1000000).toLocaleString('vi-VN', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' triệu VNĐ';
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 10000000,
+                            ticks: {
+                                callback: function(value) {
+                                    return (value / 1000000).toLocaleString('vi-VN') + ' triệu';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Cập nhật biểu đồ
+        function updateCharts() {
+            const filteredExpenses = getFilteredExpenses();
+            const categoryTotals = {};
+            
+            filteredExpenses.forEach(expense => {
+                if (!categoryTotals[expense.category]) {
+                    categoryTotals[expense.category] = 0;
+                }
+                categoryTotals[expense.category] += expense.amount;
+            });
+
+            const labels = Object.keys(categoryTotals).map(key => categoryNames[key]);
+            const data = Object.values(categoryTotals);
+            const colors = Object.keys(categoryTotals).map(key => categoryColors[key]);
+
+            // Cập nhật biểu đồ tròn
+            pieChart.data.labels = labels;
+            pieChart.data.datasets[0].data = data;
+            pieChart.data.datasets[0].backgroundColor = colors;
+            pieChart.update();
+
+            // Cập nhật biểu đồ cột
+            barChart.data.labels = labels;
+            barChart.data.datasets[0].data = data;
+            barChart.data.datasets[0].backgroundColor = colors;
+            barChart.update();
+        }
+
+        // Cập nhật tổng quan
+        function updateSummary() {
+            const filteredExpenses = getFilteredExpenses();
+            const total = filteredExpenses.reduce((sum, exp) => sum + exp.amount, 0);
+            document.getElementById('totalExpense').textContent = (total / 1000).toLocaleString('vi-VN') + ' nghìn VNĐ';
+            document.getElementById('totalTransactions').textContent = filteredExpenses.length;
+
+            // Tìm danh mục chi nhiều nhất
+            const categoryTotals = {};
+            filteredExpenses.forEach(exp => {
+                categoryTotals[exp.category] = (categoryTotals[exp.category] || 0) + exp.amount;
+            });
+
+            const topCat = Object.keys(categoryTotals).reduce((a, b) => 
+                categoryTotals[a] > categoryTotals[b] ? a : b, '');
+            
+            document.getElementById('topCategory').textContent = 
+                topCat ? categoryNames[topCat] : '-';
+        }
+
+        // Cập nhật bảng giao dịch
+        function updateTransactionsTable() {
+            const tbody = document.getElementById('transactionsTable');
+            const filteredExpenses = getFilteredExpenses();
+            console.log('Cập nhật bảng - Số giao dịch:', filteredExpenses.length);
+            
+            if (filteredExpenses.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: #999;">Không có giao dịch nào</td></tr>';
+                return;
+            }
+
+            // Tạo map từ filtered expenses về index gốc trong expenses array
+            const expenseMap = new Map();
+            expenses.forEach((exp, idx) => expenseMap.set(exp, idx));
+
+            tbody.innerHTML = filteredExpenses.map((expense) => {
+                const originalIndex = expenseMap.get(expense);
+                return `
+                <tr>
+                    <td>${new Date(expense.date).toLocaleDateString('vi-VN')}</td>
+                    <td><span class="category-badge ${expense.category}">${categoryNames[expense.category]}</span></td>
+                    <td>${expense.description}</td>
+                    <td><strong>${expense.amount.toLocaleString('vi-VN')} VNĐ</strong></td>
+                    <td><button class="delete-btn" onclick="deleteExpense(${originalIndex})">Xóa</button></td>
+                </tr>`;
+            }).reverse().join('');
+            console.log('Đã render', filteredExpenses.length, 'dòng vào bảng');
+        }
+
+        // Thêm chi tiêu
+        document.getElementById('expenseForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const amount = parseInt(document.getElementById('amount').value);
+            const category = document.getElementById('category').value;
+            const description = document.getElementById('description').value;
+            const day = parseInt(document.getElementById('inputDay').value);
+            const month = parseInt(document.getElementById('inputMonth').value);
+            const year = parseInt(document.getElementById('inputYear').value);
+
+            // Kiểm tra ngày hợp lệ
+            const dateObj = new Date(year, month - 1, day);
+            if (
+                dateObj.getFullYear() !== year ||
+                dateObj.getMonth() !== month - 1 ||
+                dateObj.getDate() !== day
+            ) {
+                alert(`Ngày ${day}/${month}/${year} không hợp lệ! Vui lòng kiểm tra lại.`);
+                return;
+            }
+
+            const expense = {
+                amount,
+                category,
+                description,
+                date: dateObj.toISOString()
+            };
+
+            expenses.push(expense);
+            localStorage.setItem('expenses', JSON.stringify(expenses));
+
+            // Reset các trường trừ ngày tháng năm
+            document.getElementById('amount').value = '';
+            document.getElementById('description').value = '';
+            document.getElementById('category').value = 'food';
+
+            updateAll();
+        });
+
+        // Set ngày mặc định là hôm nay
+        const now = new Date();
+        document.getElementById('inputDay').value = now.getDate();
+        document.getElementById('inputMonth').value = now.getMonth() + 1;
+        document.getElementById('inputYear').value = now.getFullYear();
+
+        // Xóa chi tiêu
+        function deleteExpense(index) {
+            if (confirm('Bạn có chắc chắn muốn xóa giao dịch này?')) {
+                expenses.splice(index, 1);
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                updateAll();
+            }
+        }
+
+        // Xóa tất cả
+        document.getElementById('clearAllBtn').addEventListener('click', function() {
+            if (confirm('Bạn có chắc chắn muốn xóa tất cả giao dịch?')) {
+                expenses = [];
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                updateAll();
+            }
+        });
+
+        // Áp dụng bộ lọc
+        document.getElementById('applyFilterBtn').addEventListener('click', function() {
+            currentFilter.day = document.getElementById('filterDay').value;
+            currentFilter.month = document.getElementById('filterMonth').value;
+            currentFilter.year = document.getElementById('filterYear').value;
+            updateAll();
+        });
+
+        // Reset bộ lọc
+        document.getElementById('resetFilterBtn').addEventListener('click', function() {
+            document.getElementById('filterDay').value = '';
+            document.getElementById('filterMonth').value = '';
+            document.getElementById('filterYear').value = '';
+            currentFilter = { day: '', month: '', year: '' };
+            updateAll();
+        });
+
+        // Cập nhật tất cả
+        function updateAll() {
+            console.log('updateAll được gọi - Số giao dịch:', expenses.length);
+            updateFilterOptions();
+            updateFilterInfo();
+            updateSummary();
+            updateCharts();
+            updateTransactionsTable();
+            console.log('Hoàn thành cập nhật tất cả');
+        }
+
+        // Khởi tạo
+        initCharts();
+        updateAll();
+    </script>
+</body>
+</html>
